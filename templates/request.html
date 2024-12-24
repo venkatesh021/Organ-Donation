@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Organ Request - Organ Donation System</title>
+  <!-- Bootstrap CSS -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <style>
+    body {
+      background-image: url("{{ url_for('static', filename='images/request.jpg') }}"); /* Dynamic background image */
+      background-size: cover;
+      background-position: center;
+      background-attachment: fixed;
+      color: #fff;
+    }
+
+    #b-btn {
+      text-decoration: none;
+      color: white;
+      padding: 6px 12px; /* Shorter button */
+      border-radius: 7px;
+      border: 1px white solid;
+      background-color: red;
+      position: absolute;
+      right: 20px; /* Positioned towards the right corner */
+      top: 20px; /* Positioned at the top */
+    }
+
+    label {
+      color: white;
+    }
+  </style>
+</head>
+<body>
+  <a href="{{ url_for('user_dashboard') }}" id="b-btn">Back</a>
+
+    <!-- Flash Messages -->
+    <div class="container mt-4">
+      {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+          {% for category, message in messages %}
+            <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
+              {{ message }}
+              <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+          {% endfor %}
+        {% endif %}
+      {% endwith %}
+    </div>
+
+  <main class="container my-5">
+    <!-- Organ Request Form -->
+    <h2 class="text-center mb-4">Request an Organ</h2>
+    <div class="row justify-content-center">
+      <div class="col-md-6">
+        <form method="POST" action="{{ url_for('request_organ') }}">
+          <!-- Full Name -->
+          <div class="mb-3">
+            <label for="fullName" class="form-label">Full Name</label>
+            <input type="text" id="fullName" name="fullName" class="form-control" placeholder="Enter your full name" required>
+          </div>
+
+          <!-- Email Address -->
+          <div class="mb-3">
+            <label for="email" class="form-label">Email Address</label>
+            <input type="email" id="email" name="email" class="form-control" placeholder="Enter your email" required>
+          </div>
+
+          <!-- Phone Number -->
+          <div class="mb-3">
+            <label for="phone" class="form-label">Phone Number</label>
+            <input type="tel" id="phone" name="phone" class="form-control" placeholder="Enter your phone number" required>
+          </div>
+
+          <!-- Address -->
+          <div class="mb-3">
+            <label for="address" class="form-label">Address</label>
+            <textarea id="address" name="address" class="form-control" rows="4" placeholder="Enter your address" required></textarea>
+          </div>
+
+          <!-- Organ Needed -->
+          <div class="mb-3">
+            <label for="organNeeded" class="form-label">Organ Needed</label>
+            <input type="text" id="organNeeded" name="organNeeded" class="form-control" placeholder="Enter organ Needed" required>
+
+          </div>
+
+          <!-- Submit Button -->
+          <div class="text-center">
+            <button type="submit" class="btn btn-success btn-lg">Submit Request</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </main>
+
+  <footer class="py-3 text-center">
+    <p>&copy; 2024 Organ Donation System. All Rights Reserved.</p>
+  </footer>
+
+  <!-- Bootstrap JS -->
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

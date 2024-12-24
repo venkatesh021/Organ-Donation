@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Organ Request List - Organ Donation System</title>
+  <!-- Bootstrap CSS -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <style>
+    /* Styles */
+    body {
+      background-image: url("{{ url_for('static', filename='images/request.jpg') }}");
+      background-size: cover;
+      background-position: center;
+      background-attachment: fixed;
+      color: white;
+    }
+
+    .table {
+      margin-top: 30px;
+    }
+
+    .table th, .table td {
+      padding: 15px;
+      text-align: left;
+    }
+
+    .table th {
+      background-color: #007bff;
+      color: white;
+    }
+
+    .d-flex {
+      margin-bottom: 20px;
+    }
+
+    .btn-info {
+      background-color: #17a2b8;
+      border-color: #17a2b8;
+    }
+
+    .btn-info:hover {
+      background-color: #138496;
+      border-color: #117a8b;
+    }
+
+    .btn-danger {
+      background-color: #dc3545;
+      border-color: #dc3545;
+    }
+
+    .btn-danger:hover {
+      background-color: #c82333;
+      border-color: #bd2130;
+    }
+
+    #b-btn {
+      text-decoration: none;
+      color: white;
+      padding: 6px;
+      border-radius: 7px;
+      border: 1px white solid;
+      background-color: red;
+      position: absolute;
+      right: 25px;
+      top: 25px;
+    }
+
+    .status-pending {
+      color: red;
+    }
+
+    .status-approved {
+      color: green;
+    }
+  </style>
+</head>
+<body>
+  <a href="{{ url_for('dashboard') }}" id="b-btn">Back</a>
+  
+  <main class="container my-5">
+    <!-- Organ Request List -->
+    <h2 class="text-center">List of Organ Requests</h2>
+    
+    <div class="d-flex justify-content-between mb-4">
+      <button id="removeRow" class="btn btn-danger">Dis-Approve Selected</button>
+      <button id="approveRow" class="btn btn-info">Approve Selected</button>
+    </div>
+    
+    <table class="table table-striped">
+      <thead>
+        <tr>
+          <th>Select</th>
+          <th>Full Name</th>
+          <th>Email</th>
+          <th>Phone</th>
+          <th>Address</th>
+          <th>Organ Requested</th>
+          <th>Status</th>
+        </tr>
+      </thead>
+      <tbody id="requestTable">
+        <!-- Organ requests dynamically loaded here -->
+        {% for request in organ_requests %}
+        <tr>
+          <td><input type="checkbox" class="row-checkbox" value="{{ request['_id'] }}"></td>
+          <td>{{ request['full_name'] }}</td>
+          <td>{{ request['email'] }}</td>
+          <td>{{ request['phone'] }}</td>
+          <td>{{ request['address'] }}</td>
+          <td>{{ request['organ_requested'] }}</td>
+          <td class="{{ 'status-pending' if request['status'] == 'Pending' else 'status-approved' }}">
+            {{ request['status'] }}
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </main>
+
+  <footer class="py-3 text-center">
+    <p>&copy; 2024 Organ Donation System. All Rights Reserved.</p>
+  </footer>
+
+  <!-- Bootstrap JS -->
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+  const removeRowButton = document.getElementById('removeRow');
+  const approveRowButton = document.getElementById('approveRow');
+  const requestTable = document.getElementById('requestTable');
+
+  // Function to remove selected rows
+  removeRowButton.addEventListener('click', async () => {
+    const selectedRequests = [...document.querySelectorAll('.row-checkbox:checked')].map(checkbox => checkbox.value);
+    if (selectedRequests.length === 0) {
+      alert('Please select at least one request to remove.');
+      return;
+    }
+
+    const response = await fetch("/remove_requests", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ request_ids: selectedRequests })
+    });
+
+    const result = await response.json();
+    if (result.success) {
+      // Remove rows from the table
+      selectedRequests.forEach(requestId => {
+        const row = document.querySelector(`input[value='${requestId}']`).closest('tr');
+      });
+      alert("Selected requests Denied.");
+    } else {
+      alert("Error Dening selected requests: " + result.message);
+    }
+  });
+
+  // Function to approve selected rows
+  approveRowButton.addEventListener('click', async () => {
+    const selectedRequests = [...document.querySelectorAll('.row-checkbox:checked')].map(checkbox => checkbox.value);
+    if (selectedRequests.length === 0) {
+      alert('Please select at least one request to approve.');
+      return;
+    }
+
+    const response = await fetch("/approve_requests", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ request_ids: selectedRequests })
+    });
+
+    const result = await response.json();
+    if (result.success) {
+      // Update status of the approved requests
+      selectedRequests.forEach(requestId => {
+        const row = document.querySelector(`input[value='${requestId}']`).closest('tr');
+        const statusCell = row.cells[6];
+        statusCell.textContent = 'Approved';
+        statusCell.classList.remove('status-pending');
+        statusCell.classList.add('status-approved');
+      });
+      alert("Selected requests approved successfully.");
+    } else {
+      alert("Error approving selected requests: " + result.message);
+    }
+  });
+});
+
+  </script>
+</body>
+</html>

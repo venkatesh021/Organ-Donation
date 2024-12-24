@@ -1,0 +1,216 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Donor List - Organ Donation System</title>
+  <!-- Bootstrap CSS -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <!-- Custom CSS -->
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+  <style>
+    /* Donor List Specific Styles */
+    body {
+      background-image: url("{{ url_for('static', filename='images/doner.jpg') }}");
+      background-size: cover;
+      background-position: center;
+      background-attachment: fixed;
+      color: white;
+    }
+
+    .table {
+      margin-top: 30px;
+    }
+
+    .table th, .table td {
+      padding: 15px;
+      text-align: left;
+    }
+
+    .table th {
+      background-color: #007bff;
+      color: white;
+    }
+
+    .d-flex {
+      margin-bottom: 20px;
+    }
+
+    .btn-success {
+      background-color: #28a745;
+      border-color: #28a745;
+    }
+
+    .btn-success:hover {
+      background-color: #218838;
+      border-color: #1e7e34;
+    }
+
+    .btn-danger {
+      background-color: #dc3545;
+      border-color: #dc3545;
+    }
+
+    .btn-danger:hover {
+      background-color: #c82333;
+      border-color: #bd2130;
+    }
+
+    #b-btn{
+      text-decoration: none;
+      color: white;
+      padding: 6px;
+      border-radius: 7px;
+      border: 1px white solid;
+      background-color: red;
+      position: absolute;
+      right:25px;
+      top: 25px;
+    }
+
+    /* Form styles for adding a donor */
+    .donor-form {
+      display: none;
+      background-color: rgba(255, 255, 255, 0.8); /* Light background */
+      padding: 20px;
+      margin-top: 20px;
+      border-radius: 10px;
+    }
+
+    .donor-form input {
+      margin-bottom: 10px;
+    }
+
+    .donor-form button {
+      margin-top: 10px;
+    }
+  </style>
+</head>
+<body>
+  <a href="{{ url_for('dashboard') }}" id="b-btn">Back</a>
+  
+  <main class="container my-5">
+    <!-- Donor List -->
+    <h2 class="text-center">List of Registered Donors</h2>
+    
+    <div class="d-flex justify-content-between mb-4">
+      <button id="addRow" class="btn btn-success">Add Donor</button>
+      <button id="removeRow" class="btn btn-danger">Remove Selected Rows</button>
+    </div>
+
+    <!-- Donor Form to Add New Donor -->
+    <div id="donorForm" class="donor-form">
+      <h4>Add New Donor</h4>
+      <form id="donorFormFields">
+        <input type="text" id="donorName" class="form-control" placeholder="Full Name" required><br>
+        <input type="email" id="donorEmail" class="form-control" placeholder="Email" required><br>
+        <input type="text" id="donorPhone" class="form-control" placeholder="Phone" required><br>
+        <input type="text" id="donorAddress" class="form-control" placeholder="Address" required><br>
+        <input type="text" id="donorOrgan" class="form-control" placeholder="Organ to Donate" required><br>
+        <button type="submit" class="btn btn-success">Add Donor</button>
+        <button type="button" id="cancelAdd" class="btn btn-danger">Cancel</button>
+      </form>
+    </div>
+
+    <table class="table table-striped">
+      <thead>
+        <tr>
+          <th id="selectAll"> Select</th>
+          <th>Full Name</th>
+          <th>Email</th>
+          <th>Phone</th>
+          <th>Address</th>
+          <th>Organ to Donate</th>
+        </tr>
+      </thead>
+
+      <tbody id="donorTable">
+        {% if donors %}
+          {% for donor in donors %}
+          <tr>
+            <td><input type="checkbox" class="selectDonor" value="{{ donor['_id'] }}"></td>
+            <td>{{ donor.name }}</td>
+            <td>{{ donor.email }}</td>
+            <td>{{ donor.phone }}</td>
+            <td>{{ donor.address }}</td>
+            <td>{{ donor.organ_to_donate }}</td>
+          </tr>
+          {% endfor %}
+        {% else %}
+          <tr>
+            <td colspan="6" class="text-center">No donors found</td>
+          </tr>
+        {% endif %}
+      </tbody>
+      
+
+    </table>
+  </main>
+
+  <footer class="py-3 text-center">
+    <p>&copy; 2024 Organ Donation System. All Rights Reserved.</p>
+  </footer>
+
+  <!-- Bootstrap JS -->
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+  <!-- Custom JS -->
+  <script>
+    // Handle Add Donor form display
+    document.getElementById("addRow").addEventListener("click", function() {
+      document.getElementById("donorForm").style.display = "block";
+    });
+
+    // Handle form submission for adding donor
+    document.getElementById("donorFormFields").addEventListener("submit", async function(event) {
+      event.preventDefault();
+      const name = document.getElementById("donorName").value;
+      const email = document.getElementById("donorEmail").value;
+      const phone = document.getElementById("donorPhone").value;
+      const address = document.getElementById("donorAddress").value;
+      const organ = document.getElementById("donorOrgan").value;
+
+      const response = await fetch("/add_donor", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ name, email, phone, address, organ })
+      });
+
+      const result = await response.json();
+      if (result.success) {
+        alert("Donor added successfully");
+        window.location.reload();
+      } else {
+        alert("Error adding donor");
+      }
+    });
+
+    // Handle cancel button for the form
+    document.getElementById("cancelAdd").addEventListener("click", function() {
+      document.getElementById("donorForm").style.display = "none";
+    });
+
+    // Handle remove selected donors
+    document.getElementById("removeRow").addEventListener("click", async function() {
+      const selectedDonors = [...document.querySelectorAll('.selectDonor:checked')].map(checkbox => checkbox.value);
+      if (selectedDonors.length === 0) {
+        alert("Please select at least one donor to remove.");
+        return;
+      }
+
+      const response = await fetch("/remove_donors", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ donor_ids: selectedDonors })
+      });
+
+      const result = await response.json();
+      if (result.success) {
+        alert("Selected donors removed successfully");
+        window.location.reload();
+      } else {
+        alert("Error removing selected donors");
+      }
+    });
+  </script>
+</body>
+</html>

@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Register - Organ Donation System</title>
+  <!-- Bootstrap CSS -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <style>
+    body {
+      background-image: url("{{ url_for('static', filename='images/register.jpg') }}");
+      background-size: cover;
+      background-position: center;
+      background-attachment: fixed;
+      color: white;
+    }
+
+    #b-btn {
+      text-decoration: none;
+      color: white;
+      padding: 6px;
+      border-radius: 7px;
+      border: 1px white solid;
+      background-color: red;
+      position: absolute;
+      right: 25px;
+      top: 25px;
+    }
+  </style>
+</head>
+<body>
+  <div class="container mt-4">
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% if messages %}
+        {% for category, message in messages %}
+          <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
+            {{ message }}
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+          </div>
+        {% endfor %}
+      {% endif %}
+    {% endwith %}
+  </div>
+  <!-- Back Button -->
+  <a href="{{ url_for('user_dashboard') }}" id="b-btn">Back</a>
+
+      <!-- Flash Messages -->
+      <div class="container mt-4">
+        {% with messages = get_flashed_messages(with_categories=true) %}
+          {% if messages %}
+            {% for category, message in messages %}
+              <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
+                {{ message }}
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+              </div>
+            {% endfor %}
+          {% endif %}
+        {% endwith %}
+      </div>
+      
+  <main class="container my-5">
+    <!-- Registration Form -->
+    <div class="row justify-content-center">
+      <div class="col-md-6">
+        <h2 class="text-center">Register as a Donor</h2>
+        <form method="POST" action="{{ url_for('register') }}">
+          <div class="mb-3">
+            <label for="name" class="form-label">Full Name</label>
+            <input type="text" class="form-control" id="name" name="name" placeholder="Enter full name" required>
+          </div>
+          <div class="mb-3">
+            <label for="email" class="form-label">Email</label>
+            <input type="email" class="form-control" id="email" name="email" placeholder="Enter email" required>
+          </div>
+          <div class="mb-3">
+            <label for="phone" class="form-label">Phone Number</label>
+            <input type="tel" class="form-control" id="phone" name="phone" placeholder="Enter phone number" required>
+          </div>
+          <div class="mb-3">
+            <label for="address" class="form-label">Address</label>
+            <textarea class="form-control" id="address" name="address" placeholder="Enter your address" rows="3" required></textarea>
+          </div>
+          <div class="mb-3">
+            <label for="organType" class="form-label">Organ to Donate</label>
+            <input class="form-control" id="organType" name="organType" placeholder="Enter the Organ to Donate" required>
+          </div>
+          <div class="mb-3">
+            <button type="submit" class="btn btn-success w-100">Register</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </main>
+
+  <footer class="py-3 text-center">
+    <p>&copy; 2024 Organ Donation System. All Rights Reserved.</p>
+  </footer>
+
+  <!-- Bootstrap JS -->
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
