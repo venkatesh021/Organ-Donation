@@ -1,0 +1,80 @@
+body {
+    font-family: Arial, sans-serif;
+    margin: 0;
+    padding: 0;
+    background-color: #f8f9fa;
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh; /* Make sure the body takes full height of the viewport */
+}
+
+header {
+    background-color: #007bff;
+    color: white;
+}
+
+nav .navbar-brand {
+    font-weight: bold;
+}
+
+footer {
+    background-color: transparent; /* Removed the white strip by making it transparent */
+    padding: 10px;
+    margin-top: auto; /* Pushes the footer to the bottom */
+    text-align: center;
+}
+
+/* Forms */
+form .form-label {
+    font-weight: bold;
+}
+
+form .btn {
+    padding: 10px;
+    font-size: 16px;
+}
+
+/* Table */
+table {
+    margin-top: 30px;
+    width: 100%;
+}
+
+table th, table td {
+    padding: 15px;
+    text-align: left;
+}
+
+table th {
+    background-color: #007bff;
+    color: white;
+}
+
+/* Custom button colors */
+.btn-primary {
+    background-color: #007bff;
+    border-color: #007bff;
+}
+
+.btn-primary:hover {
+    background-color: #0056b3;
+    border-color: #004085;
+}
+
+.btn-success {
+    background-color: #28a745;
+    border-color: #28a745;
+}
+
+.btn-success:hover {
+    background-color: #218838;
+    border-color: #1e7e34;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    table th, table td {
+        padding: 10px;
+    }
+}
+
