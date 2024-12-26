@@ -1,4 +1,8 @@
-from flask import Flask, render_template, request, redirect, url_for, session, flash,jsonify
+from flask import Flask, render_template, request, redirect, url_for, session, flash,jsonify, make_response
+from reportlab.lib.pagesizes import letter,landscape
+from reportlab.pdfgen import canvas
+from reportlab.lib.colors import black, red, blue
+import io
 from pymongo import MongoClient
 from bson import ObjectId
 import os
@@ -266,7 +270,6 @@ def view_request_status():
     return render_template('requeststatus.html', requests=user_requests)
 
 
-
 @app.route('/register', methods=['GET', 'POST'])
 def register():
     if request.method == 'POST':
@@ -276,7 +279,6 @@ def register():
         address = request.form['address']
         organ_type = request.form['organType']
 
-        # Save donor details to MongoDB
         donor = {
             "name": name,
             "email": email,
@@ -287,85 +289,92 @@ def register():
 
         try:
             # Insert donor data into the MongoDB 'donors' collection
-            donor_collection.insert_one(donor)
+            result = donor_collection.insert_one(donor)
+            donor['_id'] = str(result.inserted_id)  # Convert ObjectId to string
+            session['donor_details'] = donor
 
-            # Generate a certificate as a PDF
-            pdf_buffer = io.BytesIO()
-            c = canvas.Canvas(pdf_buffer, pagesize=landscape(letter))
+            # Flash success message
+            flash("Registration successful! You can now download your certificate.", "success")
 
-            # Certificate Design
-            # Outer border
-            c.setStrokeColor(blue)
-            c.setLineWidth(4)
-            c.rect(20, 20, 760, 560, stroke=1, fill=0)
-
-            # Inner border
-            c.setStrokeColor(red)
-            c.setLineWidth(2)
-            c.rect(30, 30, 740, 540, stroke=1, fill=0)
-
-            # Header
-            c.setFont("Helvetica-Bold", 36)
-            c.setFillColor(blue)
-            c.drawCentredString(415, 500, "Certificate of Appreciation")
-
-            c.setFont("Helvetica", 18)
-            c.setFillColor(black)
-            c.drawCentredString(415, 460, "This certificate is awarded to")
-
-            # Recipient Name
-            c.setFont("Helvetica-Bold", 28)
-            c.setFillColor(red)
-            c.drawCentredString(415, 420, name.upper())
-
-            # Purpose
-            c.setFont("Helvetica", 16)
-            c.setFillColor(black)
-            c.drawCentredString(415, 380, "For your generous decision to donate")
-
-            c.setFont("Helvetica-Bold", 20)
-            c.drawCentredString(415, 350, f"{organ_type.upper()}")
-
-            # Contact Information
-            c.setFont("Helvetica", 12)
-            c.drawCentredString(415, 320, f"Contact: {email} | {phone}")
-            c.drawCentredString(415, 300, f"Address: {address}")
-
-            # Signature Section
-            c.setFont("Times-Italic", 12)
-            c.drawCentredString(415, 220, "Your contribution is invaluable in saving lives!")
-
-            # Draw a signature line and add a signature image
-            c.line(300, 120, 530, 120)
-            c.setFont("Helvetica", 10)
-            c.drawCentredString(415, 100, "Authorized Signature")
-
-          
-            signature_path = "static/images/signature.png"
-
-            if os.path.exists(signature_path):
-                c.drawImage(signature_path, 370, 130, width=100, height=50, mask='auto')
-
-            # Footer
-            c.setFont("Times-Italic", 10)
-            c.setFillColor(black)
-            c.drawCentredString(415, 50, "© 2024 Organ Donation System. All Rights Reserved.")
-
-            c.showPage()
-            c.save()
-
-            pdf_buffer.seek(0)
-
-            # Send the certificate as a downloadable file
-            response = make_response(pdf_buffer.getvalue())
-            response.headers['Content-Type'] = 'application/pdf'
-            response.headers['Content-Disposition'] = f'attachment; filename=donation_certificate_{name}.pdf'
-            return response
+            # Redirect to avoid re-submission
+            return redirect(url_for('register'))
         except Exception as e:
             flash(f"An error occurred: {str(e)}", "danger")
-            return render_template('register.html')
+            return redirect(url_for('register'))
 
+    # Render the form page with no duplicate messages
     return render_template('register.html')
+
+
+
+
+@app.route('/download_certificate')
+def download_certificate():
+    # Retrieve donor details from session
+    donor = session.get('donor_details')
+    if not donor:
+        flash("No donor details found. Please register first.", "danger")
+        return redirect(url_for('register'))
+
+    # Generate certificate
+    pdf_buffer = io.BytesIO()
+    c = canvas.Canvas(pdf_buffer, pagesize=landscape(letter))
+
+    # Certificate Design (same as before)
+    c.setStrokeColor(blue)
+    c.setLineWidth(4)
+    c.rect(20, 20, 760, 560, stroke=1, fill=0)
+
+    c.setStrokeColor(red)
+    c.setLineWidth(2)
+    c.rect(30, 30, 740, 540, stroke=1, fill=0)
+
+    c.setFont("Helvetica-Bold", 36)
+    c.setFillColor(blue)
+    c.drawCentredString(415, 500, "Certificate of Appreciation")
+
+    c.setFont("Helvetica", 18)
+    c.setFillColor(black)
+    c.drawCentredString(415, 460, "This certificate is awarded to")
+
+    c.setFont("Helvetica-Bold", 28)
+    c.setFillColor(red)
+    c.drawCentredString(415, 420, donor['name'].upper())
+
+    c.setFont("Helvetica", 16)
+    c.setFillColor(black)
+    c.drawCentredString(415, 380, "For your generous decision to donate")
+
+    c.setFont("Helvetica-Bold", 20)
+    c.drawCentredString(415, 350, f"{donor['organ_to_donate'].upper()}")
+
+    c.setFont("Helvetica", 12)
+    c.drawCentredString(415, 320, f"Contact: {donor['email']} | {donor['phone']}")
+    c.drawCentredString(415, 300, f"Address: {donor['address']}")
+
+    c.line(300, 120, 530, 120)
+    c.setFont("Helvetica", 10)
+    c.drawCentredString(415, 100, "Authorized Signature")
+
+    signature_path = "static/images/signature.png"
+    if os.path.exists(signature_path):
+        c.drawImage(signature_path, 370, 130, width=100, height=50, mask='auto')
+
+    c.setFont("Times-Italic", 10)
+    c.setFillColor(black)
+    c.drawCentredString(415, 50, "© 2024 Organ Donation System. All Rights Reserved.")
+
+    c.showPage()
+    c.save()
+
+    pdf_buffer.seek(0)
+
+    # Send the certificate as a downloadable file
+    response = make_response(pdf_buffer.getvalue())
+    response.headers['Content-Type'] = 'application/pdf'
+    response.headers['Content-Disposition'] = f'attachment; filename=donation_certificate_{donor['name']}.pdf'
+    return response
+
 
 
 
