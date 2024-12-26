@@ -26,21 +26,22 @@
       right: 25px;
       top: 25px;
     }
+    #d-btn {
+      position: absolute;
+      right: 25px;
+      top: 100px;
+    }
   </style>
 </head>
 <body>
-  <div class="container mt-4">
-    {% with messages = get_flashed_messages(with_categories=true) %}
-      {% if messages %}
-        {% for category, message in messages %}
-          <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
-            {{ message }}
-            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-          </div>
-        {% endfor %}
-      {% endif %}
-    {% endwith %}
+
+  
+  {% if session.get('donor_details') %}
+  <div class="text-center my-4">
+    <a href="{{ url_for('download_certificate') }}" class="btn btn-primary" id="d-btn">Download Certificate</a>
   </div>
+  {% endif %}
+  
   <!-- Back Button -->
   <a href="{{ url_for('user_dashboard') }}" id="b-btn">Back</a>
 
